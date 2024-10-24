@@ -1,19 +1,24 @@
 const express = require('express');
 const app = express();
+
+const cors = require('cors');
+
+app.use(cors());
+
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
+
 const port = 3000;
 require('dotenv').config();
-var bodyParser = require('body-parser');
 
 // Express
 app.get('/', (req, res) => {
     res.send('Hello World!');
    });
    
-   app.use(bodyParser.json());
-   
-   app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-   });
+app.listen(port, () => {
+ console.log(`Server running at http://localhost:${port}`);
+});
 
 // PostgreSQL connection
 var pg = require('pg');
