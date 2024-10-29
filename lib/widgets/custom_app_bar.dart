@@ -1,4 +1,6 @@
+import 'package:echo_chamber/pages/home_page.dart';
 import 'package:echo_chamber/pages/login_page.dart';
+import 'package:echo_chamber/pages/map_page.dart';
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget {
@@ -7,15 +9,25 @@ class CustomAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 50,
+      height: 65,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Padding(padding: EdgeInsets.only(left: 20),
-            child: Text('Inicio')
+          Padding(padding: const EdgeInsets.only(left: 20),
+            child: TextButton(
+              onPressed: () async {
+                await Navigator.pushNamed(context, HomePage.route);
+              },
+              child: const Text('Inicio'),
+            ),
           ),
-          const Padding(padding: EdgeInsets.only(left: 20),
-              child: Text('Mapa')
+          Padding(padding: const EdgeInsets.only(left: 20),
+              child: TextButton(
+                onPressed: () async {
+                  await Navigator.pushNamed(context, MapPage.route);
+                },
+                child: const Text('Mapa'),
+              ),
           ),
           const Padding(padding: EdgeInsets.only(left: 20),
               child: Text('Descubrir')
