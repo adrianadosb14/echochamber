@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+  static String route = '/login';
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -21,32 +22,65 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Form(
-        child: Column(
-          children: [
-            TextField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Email',
-              ),
-              controller: emailController,
+      body: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Expanded(child: Container(
+            color: Theme.of(context).colorScheme.primary,
+            child: const Center(
+              child: Text('Echo\nChamber', style: TextStyle(
+                fontSize: 70,
+                color: Colors.white
+              ),),
             ),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Password',
+          )),
+          Form(
+            child: Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width/2,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: SizedBox(
+                        width: 500,
+                        child: TextField(
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Email',
+                          ),
+                          controller: emailController,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: SizedBox(
+                        width: 500,
+                        child: TextField(
+                          controller: passwordController,
+                          obscureText: true,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Password',
+                          ),
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                        onPressed: () async {
+                          bool ok = await User.loginUser(email: emailController.text, password: passwordController.text);
+                          if (ok) print('LOGIN CORRECTO');
+                        },
+                        child: const Text('Acceder'))
+                  ],
+                      ),
               ),
-            ),
-            TextButton(
-                onPressed: () async {
-                  bool ok = await User.loginUser(email: emailController.text, password: passwordController.text);
-                  if (ok) print('LOGIN CORRECTO');
-                },
-                child: Text('Acceder'))
-          ],
-      )),
+            )),
+        ],
+      ),
     );
   }
 }
