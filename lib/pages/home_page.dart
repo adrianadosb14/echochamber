@@ -36,11 +36,20 @@ class _MyHomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: <Widget>[
-          CustomAppBar(),
+          const CustomAppBar(),
+          Expanded(child: Container(
+            color: Theme.of(context).colorScheme.primary,
+            child: const Center(
+              child: Text('Echo\nChamber', style: TextStyle(
+                  fontSize: 70,
+                  color: Colors.white
+              ),),
+            ),
+          )),
         ],
       ),
     );
