@@ -60,14 +60,14 @@ class User {
     return (json.decode(jsonRes.body)[0]['o_user_id'] != null);
   }
 
-  static Future<bool> loginUser({required String email, required String password}) async {
+  static Future<dynamic> loginUser({required String email, required String password}) async {
     http.Response jsonRes = await HttpService.sendPostReq(
         operation: 'login_user',
         body: {
           "i_email" : email,
           "i_password" : password
         });
-    return (json.decode(jsonRes.body)[0]['o_last_access'] != null);
+    return json.decode(jsonRes.body);
   }
 
 }

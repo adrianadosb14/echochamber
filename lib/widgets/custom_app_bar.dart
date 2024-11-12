@@ -1,3 +1,4 @@
+import 'package:echo_chamber/common/config.dart';
 import 'package:echo_chamber/pages/home_page.dart';
 import 'package:echo_chamber/pages/login_page.dart';
 import 'package:echo_chamber/pages/map_page.dart';
@@ -35,12 +36,12 @@ class CustomAppBar extends StatelessWidget {
           const Padding(padding: EdgeInsets.only(left: 20),
               child: Text('Buscar')
           ),
-          OutlinedButton(
+          Config.loginUser == null ? OutlinedButton(
             onPressed: () {
               Navigator.pushNamed(context, LoginPage.route);
             },
               child: const Text('Iniciar sesión'),
-          )
+          ) : Text('Sesión iniciada como ${Config.loginUser?.username}')
         ],
       ),
     );

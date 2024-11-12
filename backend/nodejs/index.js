@@ -103,3 +103,21 @@ app.post('/api/create_post', async (req, res) => {
     });
     
 });
+
+app.post('/api/get_events', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from get_events();`)
+    .then(response => {
+        console.log(response.rows);
+        var rows = response.rows;
+        client.end();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.end();
+        res.send(err);
+    });
+    
+});

@@ -3,6 +3,7 @@ DROP SCHEMA public cascade; CREATE SCHEMA public;
 GRANT all ON SCHEMA public TO postgres;
 
 CREATE EXTENSION pgcrypto;
+CREATE EXTENSION postgis;
 
 CREATE TABLE users(
     user_id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid() ,
@@ -21,5 +22,15 @@ CREATE TABLE post(
     user_id uuid NOT NULL REFERENCES users(user_id),
     content VARCHAR NOT NULL,
     creation_date TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE event(
+    event_id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL REFERENCES users(user_id),
+    title VARCHAR NOT NULL,
+    description VARCHAR,
+    start_date TIMESTAMPTZ NOT NULL,
+    end_date TIMESTAMPTZ NOT NULL,
+    geoloc GEOGRAPHY 
 );
 

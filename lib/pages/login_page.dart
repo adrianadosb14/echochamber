@@ -1,3 +1,4 @@
+import 'package:echo_chamber/common/config.dart';
 import 'package:echo_chamber/models/user.dart';
 import 'package:flutter/material.dart';
 
@@ -71,8 +72,13 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     TextButton(
                         onPressed: () async {
-                          bool ok = await User.loginUser(email: emailController.text, password: passwordController.text);
-                          if (ok) print('LOGIN CORRECTO');
+                          dynamic response = await User.loginUser(email: emailController.text, password: passwordController.text);
+                          if (response[0]['o_last_access'] != null) {
+                            Config.loginUser = User()
+                                ..userId = response[0]['o_user_id']
+                                ..username = response[0]['o_username'];
+                            Navigator.pop(context);
+                          }
                         },
                         child: const Text('Acceder'))
                   ],
