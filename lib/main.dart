@@ -4,6 +4,8 @@ import 'package:echo_chamber/pages/map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 
+import 'pages/event_page.dart';
+
 void main() {
   usePathUrlStrategy();
   runApp(const MyApp());
@@ -26,6 +28,7 @@ class MyApp extends StatelessWidget {
         HomePage.route: (context) => const HomePage(title: 'Flutter Demo Home Page'),
         LoginPage.route: (context) => const LoginPage(),
         MapPage.route: (context) => const MapPage(),
+        EventPage.route: (context) => const EventPage()
       },
     );
   }
