@@ -54,7 +54,7 @@ class _MapPageState extends State<MapPage> {
         list.add(Marker(
           point: LatLng(events[i].latitude!, events[i].longitude!),
           child: Tooltip(
-            message: 'Título: ${events[i].title}\Descripción: ${events[i].title}',
+            message: 'Título: ${events[i].title}\nDescripción: ${events[i].title}',
             child: const Icon(Icons.location_on, color: Colors.redAccent),
           )
         ));
@@ -206,6 +206,7 @@ class _MapPageState extends State<MapPage> {
                                      longitude: coords.longitude
                                  );
                                  if (ok == true) {
+                                   setState(() {});
                                    print('evento creado correctamente');
                                  }
                                   Navigator.of(context).pop();
@@ -228,36 +229,30 @@ class _MapPageState extends State<MapPage> {
                   userAgentPackageName: 'com.example.app',
                   // And many more recommended properties!
                 ),
+                CircleLayer(circles: [
+                  CircleMarker(
+                      point: LatLng(currentLocation?.latitude??40.416775, currentLocation?.longitude??-3.703790),
+                      radius: 1000,
+                      useRadiusInMeter: true,
+                      color: Colors.purple.withOpacity(.2),
+                      borderColor: Colors.purple,
+                      borderStrokeWidth: 2
+                  )
+                ]),
                 MarkerLayer(markers: getMarkers()),
-               //CircleLayer(circles: [
-               //  CircleMarker(
-               //      point: LatLng(currentLocation?.latitude??40.416775, currentLocation?.longitude??-3.703790),
-               //      radius: 1000,
-               //      useRadiusInMeter: true,
-               //      color: Colors.purple.withOpacity(.2),
-               //      borderColor: Colors.purple,
-               //      borderStrokeWidth: 2
-               //  )
-               //]),
                 const RichAttributionWidget( // Include a stylish prebuilt attribution widget that meets all requirments
                   attributions: [
                     TextSourceAttribution(
                       'OpenStreetMap contributors',
                      // onTap: () => launchUrl(Uri.parse('https://openstreetmap.org/copyright')), // (external)
                     ),
-                    // Also add images...
                   ],
                 ),
               ],
             )
           )
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.add),
-            onPressed: () async {
-
-        }),
+      )
     ) : const CircularProgressIndicator();
   }
 }

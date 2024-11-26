@@ -121,3 +121,30 @@ app.post('/api/get_events', async (req, res) => {
     });
     
 });
+
+app.post('/api/create_event', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from create_event($1,$2,$3,$4,$5,$6,$7);`,
+        [
+            req.body['i_user_id'],
+            req.body['i_title'],
+            req.body['i_description'],
+            req.body['i_start_date'],
+            req.body['i_end_date'],
+            req.body['i_longitude'],
+            req.body['i_latitude']
+        ])
+    .then(response => {
+        console.log(response.rows);
+        var rows = response.rows;
+        client.end();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.end();
+        res.send(err);
+    });
+    
+});
