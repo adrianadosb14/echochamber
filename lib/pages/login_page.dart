@@ -77,7 +77,7 @@ class _LoginPageState extends State<LoginPage> {
                             Config.loginUser = User()
                                 ..userId = response[0]['o_user_id']
                                 ..username = response[0]['o_username'];
-                            Navigator.pop(context);
+                            Navigator.pop(context, true);
                           }
                         },
                         child: const Text('Acceder'))

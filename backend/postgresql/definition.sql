@@ -20,6 +20,7 @@ CREATE TABLE users(
 CREATE TABLE post(
     post_id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL REFERENCES users(user_id),
+    event_id uuid NOT NULL REFERENCES event(event_id),
     content VARCHAR NOT NULL,
     creation_date TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

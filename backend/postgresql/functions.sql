@@ -140,6 +140,7 @@ END;$$ language plpgsql;
 DROP FUNCTION IF EXISTS create_post;
 CREATE OR REPLACE FUNCTION create_post(
     i_user_id uuid,
+    i_event_id uuid,
     i_content VARCHAR
 	)
 RETURNS TABLE(o_post_id uuid)
@@ -150,11 +151,15 @@ BEGIN
     INSERT INTO post(
         post_id,
         user_id,
-        content
+        event_id,
+        content,
+        creation_date
     ) VALUES(
         o_post_id,
         i_user_id,
-        i_content
+        i_event_id,
+        i_content,
+        now()
     );
 
 	
@@ -190,6 +195,40 @@ BEGIN
 
 	
 	RETURN NEXT;
+END;$$ language plpgsql;
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_posts;
+CREATE OR REPLACE FUNCTION get_posts(
+    i_event_id uuid
+    )
+RETURNS TABLE(
+    o_post_id uuid,
+    o_user_id uuid,
+    o_username varchar,
+    o_event_id uuid,
+    o_content varchar,
+    o_creation_date TIMESTAMPTZ
+    )
+AS $$
+declare x_r record;
+BEGIN
+    
+    for x_r in
+    select p.*, u.username from post p
+    join users u on u.user_id = p.user_id
+    where event_id = i_event_id
+    loop
+        o_post_id = x_r.post_id;
+        o_user_id = x_r.user_id;
+        o_username = x_r.username;
+        o_event_id = x_r.event_id;
+        o_content = x_r.content;
+        o_creation_date = x_r.creation_date;
+	RETURN NEXT;
+    end loop;
+
 END;$$ language plpgsql;
 
 

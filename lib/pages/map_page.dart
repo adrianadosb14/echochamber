@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:echo_chamber/common/config.dart';
 import 'package:echo_chamber/models/event.dart';
+import 'package:echo_chamber/pages/event_page.dart';
 import 'package:echo_chamber/util/util.dart';
 import 'package:echo_chamber/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -54,8 +55,15 @@ class _MapPageState extends State<MapPage> {
         list.add(Marker(
           point: LatLng(events[i].latitude!, events[i].longitude!),
           child: Tooltip(
-            message: 'Título: ${events[i].title}\nDescripción: ${events[i].title}',
-            child: const Icon(Icons.location_on, color: Colors.redAccent),
+            message: 'Título: ${events[i].title}\n'
+                'Descripción: ${events[i].description}\n'
+                'Inicio: ${Util.dateTimeToString(events[i].startDate!)}\n'
+                'Final: ${Util.dateTimeToString(events[i].endDate!)}',
+            child: IconButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, EventPage.route, arguments: events[i]);
+                },
+                icon: const Icon(Icons.location_on, color: Colors.redAccent)),
           )
         ));
       }
@@ -90,10 +98,6 @@ class _MapPageState extends State<MapPage> {
 
                    XmlElement? closestAddress = document.findAllElements('result').first;
 
-                   print('Coordenadas\n'
-                       'Longitud: ${coords.longitude}\n'
-                       'Latitud: ${coords.latitude}\n'
-                       'Dirección: ${closestAddress.innerText}');
                   await showDialog<void>(
                     context: context,
                     builder: (BuildContext context) {

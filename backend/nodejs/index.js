@@ -86,10 +86,31 @@ app.post('/api/login_user', async (req, res) => {
 app.post('/api/create_post', async (req, res) => {
     const client = await pool.connect();
 
-    client.query(`select * from create_post($1,$2);`,
+    client.query(`select * from create_post($1,$2,$3);`,
         [
           req.body['i_user_id'],
+          req.body['i_event_id'],
           req.body['i_content']
+        ])
+    .then(response => {
+        console.log(response.rows);
+        var rows = response.rows;
+        client.end();
+        res.send(rows);
+    })
+    .catch(err => {
+        client.end();
+        res.send(err);
+    });
+    
+});
+
+app.post('/api/get_posts', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from get_posts($1);`,
+        [
+          req.body['i_event_id']
         ])
     .then(response => {
         console.log(response.rows);
