@@ -76,7 +76,8 @@ class _LoginPageState extends State<LoginPage> {
                           if (response[0]['o_last_access'] != null) {
                             Config.loginUser = User()
                                 ..userId = response[0]['o_user_id']
-                                ..username = response[0]['o_username'];
+                                ..username = response[0]['o_username']
+                                ..type = response[0]['o_type'];
                             Navigator.pop(context, true);
                           }
                         },

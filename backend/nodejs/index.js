@@ -10,6 +10,7 @@ app.use(bodyParser.json());
 
 const port = 3000;
 require('dotenv').config();
+const fs = require('node:fs');
 
 // Express
 app.get('/', (req, res) => {
@@ -168,4 +169,30 @@ app.post('/api/create_event', async (req, res) => {
         res.send(err);
     });
     
+});
+
+
+app.post('/api/create_event_file', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from create_event_file($1,$2);`,
+        [
+            req.body['i_event_id'],
+            req.body['i_file_id']
+        ])
+    .then(response => {
+        if (response.rows['o_file_id'] != null) {
+            var base64Str = req.body['i_content'];
+            var buf = Buffer.from(base64Str, 'base64');
+            fs.writeFileSync(`files/${response.rows['o_file_id']}`, buf);
+        }
+        var rows = response.rows;
+        client.end();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.end();
+        res.send(err);
+    });
 });

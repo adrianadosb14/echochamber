@@ -12,7 +12,17 @@ class CustomAppBar extends StatefulWidget {
   State<CustomAppBar> createState() => _CustomAppBarState();
 }
 
+enum ConfigButton {
+  tags('Etiquetas', '/tags');
+
+  const ConfigButton(this.label, this.route);
+  final String label;
+  final String route;
+}
+
 class _CustomAppBarState extends State<CustomAppBar> {
+  final TextEditingController configController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -43,6 +53,25 @@ class _CustomAppBarState extends State<CustomAppBar> {
           ),
           const Padding(padding: EdgeInsets.only(left: 20),
               child: Text('Buscar')
+          ),
+          if (Config.loginUser?.type == 0) Padding(padding: const EdgeInsets.only(left: 20),
+            child: DropdownMenu<ConfigButton>(
+              initialSelection: ConfigButton.tags,
+              controller: configController,
+              requestFocusOnTap: true,
+              label: const Text('Configuración'),
+              onSelected: (ConfigButton? button) {
+                print(button?.route);
+              },
+              dropdownMenuEntries: ConfigButton.values
+                  .map<DropdownMenuEntry<ConfigButton>>(
+                      (ConfigButton button) {
+                    return DropdownMenuEntry<ConfigButton>(
+                      value: button,
+                      label: button.label,
+                    );
+                  }).toList(),
+            ),
           ),
           Config.loginUser == null ? OutlinedButton(
             onPressed: () async {

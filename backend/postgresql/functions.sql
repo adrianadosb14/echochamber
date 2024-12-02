@@ -73,13 +73,13 @@ CREATE OR REPLACE FUNCTION login_user(
     i_email VARCHAR,
     i_password VARCHAR
 	)
-RETURNS TABLE(o_last_access TIMESTAMPTZ, o_user_id uuid, o_username varchar)
+RETURNS TABLE(o_last_access TIMESTAMPTZ, o_user_id uuid, o_username varchar,  o_type int)
 AS $$
 DECLARE x_user_id uuid;
 BEGIN
-    SELECT user_id, username FROM users
+    SELECT user_id, username, type FROM users
     WHERE email = i_email AND password = crypt(i_password, password)
-    INTO o_user_id, o_username;
+    INTO o_user_id, o_username, o_type;
 
     IF (o_user_id IS NOT NULL)
     THEN
@@ -342,4 +342,116 @@ BEGIN
 	RETURN NEXT;
     end loop;
 
+END;$$ language plpgsql;
+
+
+/*
+
+ ______ _____ _      _____ 
+ |  ___|_   _| |    |  ___|
+ | |_    | | | |    | |__  
+ |  _|   | | | |    |  __| 
+ | |    _| |_| |____| |___ 
+ \_|    \___/\_____/\____/ 
+                                             
+ 
+*/
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS upload_file;
+CREATE OR REPLACE FUNCTION upload_file(
+    i_user_id uuid,
+    i_filename VARCHAR
+	)
+RETURNS TABLE(o_file_id uuid)
+AS $$
+BEGIN
+    
+    o_file_id = gen_random_uuid();
+    INSERT INTO file(
+        file_id,
+        user_id,
+        filename
+    ) VALUES(
+        o_file_id,
+        i_user_id,
+        i_filename
+    );
+	RETURN NEXT;
+END;$$ language plpgsql;
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS create_event_file;
+CREATE OR REPLACE FUNCTION create_event_file(
+    i_event_id uuid,
+    i_user_id uuid,
+    i_filename VARCHAR
+	)
+RETURNS TABLE(o_event_file_id uuid, o_file_id uuid)
+AS $$
+BEGIN
+
+    SELECT o_file_id FROM upload_file(
+    i_user_id,
+    i_filename
+	) INTO o_file_id;
+    
+    o_event_file_id = gen_random_uuid();
+    INSERT INTO event_file(
+        event_file_id,
+        event_id,
+        file_id
+    ) VALUES(
+        o_event_file_id,
+        i_event_id,
+        o_file_id
+    );
+	RETURN NEXT;
+END;$$ language plpgsql;
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS create_tag;
+CREATE OR REPLACE FUNCTION create_tag(
+    i_name VARCHAR,
+    i_color VARCHAR,
+	)
+RETURNS TABLE(o_tag_id uuid)
+AS $$
+BEGIN
+    
+    o_tag_id = gen_random_uuid();
+    INSERT INTO tag(
+        tag_id,
+        name,
+        color
+    ) VALUES(
+        o_tag_id,
+        i_name,
+        i_color
+    );
+
+	
+	RETURN NEXT;
+END;$$ language plpgsql;
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS delete_tag;
+CREATE OR REPLACE FUNCTION delete_tag(
+    i_user_id uuid,  -- Usuario que realiza la acción.   
+    i_tag_id uuid
+	)
+RETURNS TABLE(o_tag_id uuid)
+AS $$
+BEGIN
+    
+    -- COMPROBAR PERMISOS!!!!!!!!!!
+
+    DELETE FROM tag WHERE tag_id = i_tag_id;
+    o_tag_id = i_tag_id;
+
+
+	
+	RETURN NEXT;
 END;$$ language plpgsql;
