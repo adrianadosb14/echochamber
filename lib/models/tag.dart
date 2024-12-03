@@ -26,14 +26,13 @@ class Tag {
   );
 
   static Future<bool> create(
-      { required String tagId,
+      {
         required String name,
         required String color
       }) async {
     http.Response jsonRes = await HttpService.sendPostReq(
-        operation: 'create_post',
+        operation: 'create_tag',
         body: {
-          "i_tag_id" : tagId,
           "i_name" : name,
           "i_color" : color
         });
