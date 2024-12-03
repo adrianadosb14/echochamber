@@ -2,6 +2,7 @@ import 'package:echo_chamber/common/config.dart';
 import 'package:echo_chamber/pages/home_page.dart';
 import 'package:echo_chamber/pages/login_page.dart';
 import 'package:echo_chamber/pages/map_page.dart';
+import 'package:echo_chamber/pages/tag_page.dart';
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatefulWidget {
@@ -60,8 +61,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
               controller: configController,
               requestFocusOnTap: true,
               label: const Text('Configuración'),
-              onSelected: (ConfigButton? button) {
-                print(button?.route);
+              onSelected: (ConfigButton? button) async {
+                await Navigator.pushNamed(context, button!.route);
               },
               dropdownMenuEntries: ConfigButton.values
                   .map<DropdownMenuEntry<ConfigButton>>(

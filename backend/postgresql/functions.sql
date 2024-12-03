@@ -414,7 +414,7 @@ END;$$ language plpgsql;
 DROP FUNCTION IF EXISTS create_tag;
 CREATE OR REPLACE FUNCTION create_tag(
     i_name VARCHAR,
-    i_color VARCHAR,
+    i_color VARCHAR
 	)
 RETURNS TABLE(o_tag_id uuid)
 AS $$
@@ -452,6 +452,34 @@ BEGIN
     o_tag_id = i_tag_id;
 
 
+	
+	RETURN NEXT;
+END;$$ language plpgsql;
+
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_all_tags;
+CREATE OR REPLACE FUNCTION get_all_tags(
+    i_user_id uuid  -- Usuario que realiza la acción.   
+	)
+RETURNS TABLE(o_tag_id uuid, o_name VARCHAR, o_color VARCHAR)
+AS $$
+declare x_type int;
+declare x_r record;
+BEGIN
+    
+    SELECT type FROM users WHERE user_id = i_user_id INTO x_type;
+    if (x_type != 0)
+    then 
+        perform exception_action_not_allowed();
+    end if;
+
+    for x_r in
+    select * from tag
+    loop
+        o_tag_id = x_r.tag_id;
+        o_name = x_r.name;
+        o_color = x_r.color;
+    end loop;
 	
 	RETURN NEXT;
 END;$$ language plpgsql;

@@ -196,3 +196,42 @@ app.post('/api/create_event_file', async (req, res) => {
         res.send(err);
     });
 });
+
+app.post('/api/create_tag', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from create_tag($1, $2);`,
+        [
+            req.body['i_name'],
+            req.body['i_color']
+        ])
+    .then(response => {
+        var rows = response.rows;
+        client.end();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.end();
+        res.send(err);
+    });
+});
+
+app.post('/api/get_all_tags', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from get_all_tags($1);`,
+        [
+            req.body['i_user_id']
+        ])
+    .then(response => {
+        var rows = response.rows;
+        client.end();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.end();
+        res.send(err);
+    });
+});

@@ -1,6 +1,7 @@
 import 'package:echo_chamber/pages/home_page.dart';
 import 'package:echo_chamber/pages/login_page.dart';
 import 'package:echo_chamber/pages/map_page.dart';
+import 'package:echo_chamber/pages/tag_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
 
@@ -28,7 +29,8 @@ class MyApp extends StatelessWidget {
         HomePage.route: (context) => const HomePage(title: 'Flutter Demo Home Page'),
         LoginPage.route: (context) => const LoginPage(),
         MapPage.route: (context) => const MapPage(),
-        EventPage.route: (context) => const EventPage()
+        EventPage.route: (context) => const EventPage(),
+        TagPage.route: (context) => const TagPage()
       },
     );
   }
