@@ -217,12 +217,50 @@ app.post('/api/create_tag', async (req, res) => {
     });
 });
 
+app.post('/api/create_event_tag', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from create_event_tag($1, $2);`,
+        [
+            req.body['i_event_id'],
+            req.body['i_tag_id'],
+        ])
+    .then(response => {
+        var rows = response.rows;
+        client.end();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.end();
+        res.send(err);
+    });
+});
+
 app.post('/api/get_all_tags', async (req, res) => {
     const client = await pool.connect();
 
-    client.query(`select * from get_all_tags($1);`,
+    client.query(`select * from get_all_tags();`,
         [
-            req.body['i_user_id']
+        ])
+    .then(response => {
+        var rows = response.rows;
+        client.end();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.end();
+        res.send(err);
+    });
+});
+
+app.post('/api/get_event_tags', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from get_event_tags($1);`,
+        [
+            req.body['i_event_id']
         ])
     .then(response => {
         var rows = response.rows;

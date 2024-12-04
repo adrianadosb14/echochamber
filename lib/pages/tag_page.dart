@@ -1,5 +1,6 @@
 import 'package:echo_chamber/common/config.dart';
 import 'package:echo_chamber/models/tag.dart';
+import 'package:echo_chamber/util/util.dart';
 import 'package:echo_chamber/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -20,7 +21,7 @@ class _TagPageState extends State<TagPage> {
 
   initializeTags() async {
     if (!tagsInitialized) {
-      tags = await Tag.getAllTags(Config.loginUser!.userId!);
+      tags = await Tag.getAllTags();
       setState(() {
         tagsInitialized = true;
       });
@@ -30,9 +31,14 @@ class _TagPageState extends State<TagPage> {
   List<Widget> getTags() {
     List<Widget> list = [];
     for (int i = 0; i < tags.length; i++) {
-      list.add(ListTile(
-        title: Text(tags[i].name!),
-        tileColor: Color(int.parse(tags[i].color!)),
+      Color bgColor = Color(int.parse(tags[i].color!));
+      list.add( Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(tags[i].name!, style: TextStyle(color: bgColor.textColorFromBg())),
+          tileColor: bgColor,
+        ),
       ));
     }
     return list;
@@ -42,14 +48,10 @@ class _TagPageState extends State<TagPage> {
     setState(() => pickerColor = color);
   }
 
-  @override
-  void initState() {
-    initializeTags();
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
+    initializeTags();
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -65,7 +67,7 @@ class _TagPageState extends State<TagPage> {
 
             await showDialog(context: context, builder: (context) {
               return StatefulBuilder(
-                builder: (context, setState) {
+                builder: (context, _setState) {
                   return AlertDialog(
                   content: IntrinsicHeight(
                     child: Column(
@@ -104,7 +106,7 @@ class _TagPageState extends State<TagPage> {
                                             ElevatedButton(
                                               child: const Text('Aceptar'),
                                               onPressed: () {
-                                                setState(() => selectedColor = pickerColor);
+                                                _setState(() => selectedColor = pickerColor);
                                                 Navigator.of(context).pop();
                                               },
                                             ),
@@ -141,10 +143,13 @@ class _TagPageState extends State<TagPage> {
                       ),
                       child: const Text('Aceptar'),
                       onPressed: () async {
-                        dynamic ok = Tag.create(name: nameController.text, color: selectedColor.value.toString());
+                        dynamic ok = await Tag.create(name: nameController.text, color: selectedColor.value.toString());
+                        print(ok);
                         if (ok == true) {
-                          tagsInitialized = false;
-                          await initializeTags();
+                          setState(() {
+                            tags = [];
+                            tagsInitialized = false;
+                          });
                           print('Etiqueta creada correctamente');
                         }
                         Navigator.of(context).pop();

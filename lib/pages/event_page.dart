@@ -1,6 +1,7 @@
 import 'package:echo_chamber/common/config.dart';
 import 'package:echo_chamber/models/event.dart';
 import 'package:echo_chamber/models/post.dart';
+import 'package:echo_chamber/models/tag.dart';
 import 'package:echo_chamber/util/util.dart';
 import 'package:echo_chamber/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -17,18 +18,73 @@ class EventPage extends StatefulWidget {
 class _EventPageState extends State<EventPage> {
   late Event event;
   bool postsInitialized = false;
+  bool tagsInitialized = false;
   List<Post> posts = [];
+  List<Tag> tags = [];
 
   void initPosts() async {
     if (!postsInitialized) {
       posts = [];
       posts = await Post.getPosts(event.eventId!);
-      if (posts.isNotEmpty) {
-        setState(() {
-          postsInitialized = true;
-        });
-      }
+
+      setState(() {
+        postsInitialized = true;
+      });
     }
+  }
+
+  void initTags() async {
+    if (!tagsInitialized) {
+      tags = [];
+      tags = await Tag.getEventTags(event.eventId!);
+
+      setState(() {
+        tagsInitialized = true;
+      });
+    }
+  }
+
+  List<Widget> getTags() {
+    List<Widget> list = [];
+    for (int i = 0; i < tags.length; i++) {
+      Color bgColor = Color(int.parse(tags[i].color!));
+      list.add(Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        child: Chip(label: Text(tags[i].name!, style: TextStyle(color: bgColor.textColorFromBg())), backgroundColor: bgColor),
+      ));
+    }
+    list.add(
+        InkWell(
+          child: const Chip(
+              label: Text('Añadir nueva etiqueta'),
+              avatar: Icon(Icons.add)
+          ),
+          onTap: () async {
+            List<Tag> tagList = [];
+            tagList = await Tag.getAllTags();
+            await showDialog(context: context, builder: (context) {
+              return AlertDialog(
+                content: Wrap(
+                  children: tagList.map((Tag tag) {
+                    Color bgColor = Color(int.parse(tag.color!));
+                    return InkWell(
+                      child: Chip(label: Text(tag.name!, style: TextStyle(color: bgColor.textColorFromBg())), backgroundColor: bgColor),
+                      onTap:  () async {
+                        dynamic ok = await tag.addToEvent(eventId: event.eventId!);
+                        if (ok == true) {
+                          setState(() {
+                            tags = [];
+                            tagsInitialized = false;
+                          });
+                        }
+                      },
+                    );
+                  }).toList()
+                ),
+              );
+            });
+          },));
+    return list;
   }
 
   List<Widget> getCommentList() {
@@ -144,6 +200,7 @@ class _EventPageState extends State<EventPage> {
     event = ModalRoute.of(context)!.settings.arguments as Event;
 
     initPosts();
+    initTags();
 
     return Scaffold(
       body: Padding(
@@ -162,6 +219,9 @@ class _EventPageState extends State<EventPage> {
                   event.title??'',
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 32),
                 ),
+              ),
+              Wrap(
+                children:[ ...getTags()],
               ),
               Padding(
                 padding: const EdgeInsets.all(16.0),

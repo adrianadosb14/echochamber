@@ -39,6 +39,19 @@ class Tag {
     return (json.decode(jsonRes.body)[0]['o_tag_id'] != null);
   }
 
+  Future<bool> addToEvent(
+      {
+        required String eventId
+      }) async {
+    http.Response jsonRes = await HttpService.sendPostReq(
+        operation: 'create_event_tag',
+        body: {
+          "i_event_id" : eventId,
+          "i_tag_id" : tagId
+        });
+    return (json.decode(jsonRes.body)[0]['o_event_tag_id'] != null);
+  }
+
   static Future<List<Tag>> getEventTags(String eventId) async {
     List<Tag> list = [];
     http.Response jsonRes = await HttpService.sendPostReq(
@@ -55,12 +68,11 @@ class Tag {
     return list;
   }
 
-  static Future<List<Tag>> getAllTags(String userId) async {
+  static Future<List<Tag>> getAllTags() async {
     List<Tag> list = [];
     http.Response jsonRes = await HttpService.sendPostReq(
         operation: 'get_all_tags',
         body: {
-          "i_user_id" : userId,
         });
 
 

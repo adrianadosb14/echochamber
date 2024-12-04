@@ -459,27 +459,63 @@ END;$$ language plpgsql;
 --------------------------------------------------------------------
 DROP FUNCTION IF EXISTS get_all_tags;
 CREATE OR REPLACE FUNCTION get_all_tags(
-    i_user_id uuid  -- Usuario que realiza la acción.   
 	)
 RETURNS TABLE(o_tag_id uuid, o_name VARCHAR, o_color VARCHAR)
 AS $$
-declare x_type int;
 declare x_r record;
 BEGIN
-    
-    SELECT type FROM users WHERE user_id = i_user_id INTO x_type;
-    if (x_type != 0)
-    then 
-        perform exception_action_not_allowed();
-    end if;
-
     for x_r in
     select * from tag
     loop
         o_tag_id = x_r.tag_id;
         o_name = x_r.name;
         o_color = x_r.color;
+        RETURN NEXT;
     end loop;
-	
-	RETURN NEXT;
+END;$$ language plpgsql;
+
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_event_tags;
+CREATE OR REPLACE FUNCTION get_event_tags(
+    i_event_id uuid
+	)
+RETURNS TABLE(o_event_tag_id uuid, o_event_id uuid, o_tag_id uuid, o_color VARCHAR, o_name VARCHAR)
+AS $$
+declare x_r record;
+BEGIN
+
+    for x_r in
+    select et.*, t.name, t.color from event_tag et
+    join tag t on t.tag_id = et.tag_id
+    loop
+        o_event_tag_id = x_r.event_tag_id;
+        o_event_id = x_r.event_id;
+        o_tag_id = x_r.tag_id;
+        o_color = x_r.color;
+        o_name = x_r.name;
+        RETURN NEXT;
+    end loop;
+END;$$ language plpgsql;
+
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS create_event_tag;
+CREATE OR REPLACE FUNCTION create_event_tag(
+    i_event_id uuid,
+    i_tag_id uuid
+	)
+RETURNS TABLE(o_event_tag_id uuid)
+AS $$
+BEGIN
+    o_event_tag_id = gen_random_uuid();
+    INSERT INTO event_tag(
+        event_tag_id,
+        event_id,
+        tag_id
+    ) VALUES (
+        o_event_tag_id,
+        i_event_id,
+        i_tag_id
+    );
+
+    RETURN NEXT;
 END;$$ language plpgsql;
