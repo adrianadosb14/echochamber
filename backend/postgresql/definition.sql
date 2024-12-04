@@ -59,3 +59,10 @@ CREATE TABLE event_file(
     file_id uuid NOT NULL REFERENCES file(file_id)
 )
 
+CREATE TABLE event_like(
+    event_like_id uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL REFERENCES users(user_id),
+    event_id uuid NOT NULL REFERENCES event(event_id),
+    creation_date TIMESTAMPTZ NOT NULL DEFAULT NOW()
+)
+

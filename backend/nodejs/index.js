@@ -273,3 +273,62 @@ app.post('/api/get_event_tags', async (req, res) => {
         res.send(err);
     });
 });
+
+app.post('/api/create_event_like', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from create_event_like($1, $2);`,
+        [
+            req.body['i_user_id'],
+            req.body['i_event_id'],
+        ])
+    .then(response => {
+        var rows = response.rows;
+        client.end();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.end();
+        res.send(err);
+    });
+});
+
+app.post('/api/remove_event_like', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from remove_event_like($1, $2);`,
+        [
+            req.body['i_user_id'],
+            req.body['i_event_like_id'],
+        ])
+    .then(response => {
+        var rows = response.rows;
+        client.end();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.end();
+        res.send(err);
+    });
+});
+
+app.post('/api/get_event_likes', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from get_event_likes($1);`,
+        [
+            req.body['i_event_id']
+        ])
+    .then(response => {
+        var rows = response.rows;
+        client.end();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.end();
+        res.send(err);
+    });
+});

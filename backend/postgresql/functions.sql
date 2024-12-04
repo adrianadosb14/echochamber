@@ -409,7 +409,15 @@ BEGIN
 	RETURN NEXT;
 END;$$ language plpgsql;
 --------------------------------------------------------------------
+/*
+  _____ ___  _____  _____ 
+ |_   _/ _ \|  __ \/  ___|
+   | |/ /_\ \ |  \/\ `--. 
+   | ||  _  | | __  `--. \
+   | || | | | |_\ \/\__/ /
+   \_/\_| |_/\____/\____/ 
 
+*/
 --------------------------------------------------------------------
 DROP FUNCTION IF EXISTS create_tag;
 CREATE OR REPLACE FUNCTION create_tag(
@@ -518,4 +526,76 @@ BEGIN
     );
 
     RETURN NEXT;
+END;$$ language plpgsql;
+
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS create_event_like;
+CREATE OR REPLACE FUNCTION create_event_like(
+    i_user_id uuid,
+    i_event_id uuid
+	)
+RETURNS TABLE(o_event_like_id uuid)
+AS $$
+BEGIN
+    o_event_like_id = gen_random_uuid();
+    INSERT INTO event_like(
+        event_like_id,
+        user_id,
+        event_id,
+        creation_date
+    ) VALUES (
+        o_event_like_id,
+        i_user_id,
+        i_event_id,
+        now()
+    );
+
+    RETURN NEXT;
+END;$$ language plpgsql;
+
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS remove_event_like;
+CREATE OR REPLACE FUNCTION remove_event_like(
+    i_user_id uuid,
+    i_event_like_id uuid
+	)
+RETURNS TABLE(o_event_like_id uuid)
+AS $$
+declare x_op_user_id uuid;  -- Original poster user_id
+BEGIN
+
+    select user_id from event_like
+    where event_like_id = i_event_like_id
+    into x_op_user_id;
+    
+    IF (x_op_user_id = i_user_id)
+    THEN
+        DELETE FROM event_like WHERE event_like_id = i_event_like_id;
+        o_event_like_id = i_event_like_id;
+    ELSE
+         PERFORM exception_action_not_allowed();
+    END IF;
+
+    RETURN NEXT;
+END;$$ language plpgsql;
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_event_likes;
+CREATE OR REPLACE FUNCTION get_event_likes(
+    i_event_id uuid
+	)
+RETURNS TABLE(o_event_like_id uuid, o_event_id uuid, o_user_id uuid, o_username VARCHAR, o_creation_date TIMESTAMPTZ)
+AS $$
+declare x_r record;
+BEGIN
+    for x_r in
+    select el.*, u.username from event_like el
+    join users u on u.user_id = el.user_id
+    loop
+        o_event_like_id = x_r.event_like_id;
+        o_user_id = x_r.user_id;
+        o_username = x_r.username;
+        o_event_id = x_r.event_id;
+        o_creation_date = x_r.creation_date;
+        RETURN NEXT;
+    end loop;
 END;$$ language plpgsql;

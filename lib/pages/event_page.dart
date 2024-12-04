@@ -1,5 +1,6 @@
 import 'package:echo_chamber/common/config.dart';
 import 'package:echo_chamber/models/event.dart';
+import 'package:echo_chamber/models/event_like.dart';
 import 'package:echo_chamber/models/post.dart';
 import 'package:echo_chamber/models/tag.dart';
 import 'package:echo_chamber/util/util.dart';
@@ -19,8 +20,11 @@ class _EventPageState extends State<EventPage> {
   late Event event;
   bool postsInitialized = false;
   bool tagsInitialized = false;
+  bool likesInitialized = false;
+
   List<Post> posts = [];
   List<Tag> tags = [];
+  List<EventLike> likes = [];
 
   void initPosts() async {
     if (!postsInitialized) {
@@ -40,6 +44,17 @@ class _EventPageState extends State<EventPage> {
 
       setState(() {
         tagsInitialized = true;
+      });
+    }
+  }
+
+  void initLikes() async {
+    if (!likesInitialized) {
+      likes = [];
+      likes = await EventLike.getEventLikes(event.eventId!);
+
+      setState(() {
+        likesInitialized = true;
       });
     }
   }
@@ -201,6 +216,7 @@ class _EventPageState extends State<EventPage> {
 
     initPosts();
     initTags();
+    initLikes();
 
     return Scaffold(
       body: Padding(
@@ -241,6 +257,28 @@ class _EventPageState extends State<EventPage> {
                   'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                   height: MediaQuery.of(context).size.height / 1.8,
                   fit: BoxFit.fill,
+                ),
+              ),
+              InkWell(
+                onTap: () async {
+                  if (Config.loginUser != null) {
+                  print(event.eventId!);
+                  if (likes.where((like) => like.userId == Config.loginUser?.userId!).toList().isEmpty) {
+                    await EventLike.create(userId: Config.loginUser!.userId!, eventId: event.eventId!);
+                  } else {
+                    await likes.where((like) => like.userId == Config.loginUser?.userId!).toList().first.remove();
+                  }
+                  setState(() {
+                    likes = [];
+                    likesInitialized = false;
+                  });
+                  } else {
+                    print('NO ESTÁS LOGUEADO');
+                  }
+                },
+                child: Chip(
+                    label: Text('Likes: ${likes.length}'),
+                    avatar: const Icon(Icons.thumb_up)
                 ),
               ),
               FractionallySizedBox(
