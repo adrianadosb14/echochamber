@@ -38,3 +38,9 @@ class Util {
     );
   }
 }
+
+extension ColorUtils on Color {
+  Color textColorFromBg() {
+    return computeLuminance() > 0.5 ? Colors.black : Colors.white;
+  }
+}
