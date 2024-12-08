@@ -6,7 +6,7 @@ const cors = require('cors');
 app.use(cors());
 
 var bodyParser = require('body-parser');
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '10mb'}));
 
 const port = 3000;
 require('dotenv').config();
@@ -53,11 +53,11 @@ app.post('/api/create_user', async (req, res) => {
     .then(response => {
         console.log(response.rows);
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
-        client.end();
+        client.release();
         res.send(err);
     });
     
@@ -74,11 +74,11 @@ app.post('/api/login_user', async (req, res) => {
     .then(response => {
         console.log(response.rows);
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
-        client.end();
+        client.release();
         res.send(err);
     });
     
@@ -96,11 +96,11 @@ app.post('/api/create_post', async (req, res) => {
     .then(response => {
         console.log(response.rows);
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
-        client.end();
+        client.release();
         res.send(err);
     });
     
@@ -116,11 +116,11 @@ app.post('/api/get_posts', async (req, res) => {
     .then(response => {
         console.log(response.rows);
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
-        client.end();
+        client.release();
         res.send(err);
     });
     
@@ -129,16 +129,25 @@ app.post('/api/get_posts', async (req, res) => {
 app.post('/api/get_events', async (req, res) => {
     const client = await pool.connect();
 
-    client.query(`select * from get_events();`)
+    client.query(`select * from get_events($1,$2,$3,$4,$5,$6);`, 
+        [
+            req.body['i_search_term'],
+            req.body['i_start_date'],
+            req.body['i_end_date'],
+            req.body['i_longitude'],
+            req.body['i_latitude'],
+            req.body['i_radius'],
+        ]
+    )
     .then(response => {
         console.log(response.rows);
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
         console.log(err);
-        client.end();
+        client.release();
         res.send(err);
     });
     
@@ -160,12 +169,12 @@ app.post('/api/create_event', async (req, res) => {
     .then(response => {
         console.log(response.rows);
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
         console.log(err);
-        client.end();
+        client.release();
         res.send(err);
     });
     
@@ -175,24 +184,77 @@ app.post('/api/create_event', async (req, res) => {
 app.post('/api/create_event_file', async (req, res) => {
     const client = await pool.connect();
 
-    client.query(`select * from create_event_file($1,$2);`,
+    client.query(`select * from create_event_file($1,$2,$3);`,
         [
             req.body['i_event_id'],
-            req.body['i_file_id']
+            req.body['i_user_id'],
+            req.body['i_filename']
         ])
     .then(response => {
-        if (response.rows['o_file_id'] != null) {
+        console.log(response.rows[0]['o_file_id']);
+        if (response.rows[0]['o_file_id'] != null) {
             var base64Str = req.body['i_content'];
+            console.log(base64Str);
             var buf = Buffer.from(base64Str, 'base64');
-            fs.writeFileSync(`files/${response.rows['o_file_id']}`, buf);
+            fs.writeFileSync(`files/${response.rows[0]['o_file_id']}`, buf);
         }
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
         console.log(err);
-        client.end();
+        client.release();
+        res.send(err);
+    });
+});
+
+app.post('/api/read_file', async (req, res) => {
+    var fileId = req.body['i_file_id'];
+    var rows = {};
+
+    const data = fs.readFileSync(`files/${fileId}`);
+    rows = {
+        "o_content" : Buffer.from(data).toString('base64')
+    };
+    res.send(rows);
+});
+
+app.post('/api/remove_event_file', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from remove_event_file($1,$2);`,
+        [
+            req.body['i_event_file_id'],
+            req.body['i_user_id']
+        ])
+    .then(response => {
+        var rows = response.rows;
+        client.release();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.release();
+        res.send(err);
+    });
+});
+
+app.post('/api/get_event_files', async (req, res) => {
+    const client = await pool.connect();
+
+    client.query(`select * from get_event_files($1);`,
+        [
+            req.body['i_event_id'],
+        ])
+    .then(response => {
+        var rows = response.rows;
+        client.release();
+        res.send(rows);
+    })
+    .catch(err => {
+        console.log(err);
+        client.release();
         res.send(err);
     });
 });
@@ -207,12 +269,12 @@ app.post('/api/create_tag', async (req, res) => {
         ])
     .then(response => {
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
         console.log(err);
-        client.end();
+        client.release();
         res.send(err);
     });
 });
@@ -227,12 +289,12 @@ app.post('/api/create_event_tag', async (req, res) => {
         ])
     .then(response => {
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
         console.log(err);
-        client.end();
+        client.release();
         res.send(err);
     });
 });
@@ -245,12 +307,12 @@ app.post('/api/get_all_tags', async (req, res) => {
         ])
     .then(response => {
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
         console.log(err);
-        client.end();
+        client.release();
         res.send(err);
     });
 });
@@ -264,12 +326,12 @@ app.post('/api/get_event_tags', async (req, res) => {
         ])
     .then(response => {
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
         console.log(err);
-        client.end();
+        client.release();
         res.send(err);
     });
 });
@@ -284,12 +346,12 @@ app.post('/api/create_event_like', async (req, res) => {
         ])
     .then(response => {
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
         console.log(err);
-        client.end();
+        client.release();
         res.send(err);
     });
 });
@@ -304,12 +366,12 @@ app.post('/api/remove_event_like', async (req, res) => {
         ])
     .then(response => {
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
         console.log(err);
-        client.end();
+        client.release();
         res.send(err);
     });
 });
@@ -323,12 +385,12 @@ app.post('/api/get_event_likes', async (req, res) => {
         ])
     .then(response => {
         var rows = response.rows;
-        client.end();
+        client.release();
         res.send(rows);
     })
     .catch(err => {
         console.log(err);
-        client.end();
+        client.release();
         res.send(err);
     });
 });
