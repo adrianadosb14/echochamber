@@ -13,8 +13,6 @@ CREATE OR REPLACE FUNCTION create_user(
     i_username VARCHAR,
     i_email VARCHAR,
     i_password VARCHAR,
-    i_description VARCHAR,
-    i_avatar BYTEA,
     i_type INT
 	)
 RETURNS TABLE(o_user_id uuid)
@@ -26,16 +24,12 @@ BEGIN
         username,
         email,
         password,
-        description,
-        avatar,
         type
     )VALUES(
         o_user_id,
         i_username,
         i_email,
         crypt(i_password, gen_salt('bf')),
-        i_description,
-        i_avatar,
         i_type
     );
 	

@@ -44,8 +44,6 @@ class User {
       {required String username,
       required String email,
       required String password,
-      required String? description,
-      required String? avatar,
       required int type}) async {
     http.Response jsonRes = await HttpService.sendPostReq(
         operation: 'create_user',
@@ -53,8 +51,6 @@ class User {
           "i_username" : username,
           "i_email" : email,
           "i_password" : password,
-          "i_description" : description,
-          "i_avatar" : avatar,
           "i_type" : type
         });
     return (json.decode(jsonRes.body)[0]['o_user_id'] != null);

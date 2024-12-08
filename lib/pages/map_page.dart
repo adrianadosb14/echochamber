@@ -89,137 +89,138 @@ class _MapPageState extends State<MapPage> {
             child: FlutterMap(
               options: MapOptions(
                 initialCenter: center!,
-                initialZoom: 9.2,
+                initialZoom: 14,
                 onTap: (post, coords) async {
+                  if (Config.loginUser?.type != 1) {
+                    http.Response res = await http.get(Uri.parse('https://nominatim.openstreetmap.org/reverse?lat=${coords.latitude}&lon=${coords.longitude}'));
+                    final document =  XmlDocument.parse(res.body);
 
-                  http.Response res = await http.get(Uri.parse('https://nominatim.openstreetmap.org/reverse?lat=${coords.latitude}&lon=${coords.longitude}'));
-                  final document =  XmlDocument.parse(res.body);
+                    XmlElement? closestAddress = document.findAllElements('result').first;
 
-                   XmlElement? closestAddress = document.findAllElements('result').first;
+                    await showDialog<void>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        DateTime? startDate = DateTime.now();
+                        DateTime? endDate = DateTime.now();
 
-                  await showDialog<void>(
-                    context: context,
-                    builder: (BuildContext context) {
-                      DateTime? startDate = DateTime.now();
-                      DateTime? endDate = DateTime.now();
+                        final TextEditingController titleController = TextEditingController();
+                        final TextEditingController descriptionController = TextEditingController();
 
-                      final TextEditingController titleController = TextEditingController();
-                      final TextEditingController descriptionController = TextEditingController();
-
-                      return StatefulBuilder(
-                        builder: (context, setStateDialog) {
-                          return AlertDialog(
-                            title: const Text('Elegir dirección'),
-                            content: IntrinsicHeight(
-                              child: Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: Text(
-                                        '¿Deseas crear un nuevo evento en la siguiente dirección?\n${closestAddress.innerText}'
-                                    ),
-                                  ),
-                                  TextButton(onPressed: () async {
-                                    startDate = await Util.showDateTimePicker(
-                                      context: context,
-                                      initialDate: DateTime.now(),
-                                      firstDate: DateTime.now(),
-                                      lastDate: DateTime.now().add(
-                                          const Duration(days: 365 * 2)),
-                                    );
-
-                                    setStateDialog(() {
-
-                                    });
-                                  },
-                                      child: Text('Fecha de inicio: ${Util.dateTimeToString(startDate??DateTime.now())}')),
-                                  TextButton(onPressed: () async {
-                                    endDate = await Util.showDateTimePicker(
-                                      context: context,
-                                      initialDate: DateTime.now(),
-                                      firstDate: DateTime.now(),
-                                      lastDate: DateTime.now().add(
-                                          const Duration(days: 365 * 2)),
-                                    );
-                                    setStateDialog(() {
-
-                                    });
-                                  }, child:  Text('Fecha de fin: ${Util.dateTimeToString(endDate??DateTime.now())}')),
-                                  Padding(
-                                    padding: const EdgeInsets.all(10),
-                                    child: SizedBox(
-                                      width: 300,
-                                      child: TextField(
-                                        decoration: const InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          labelText: 'Título',
-                                        ),
-                                        controller: titleController,
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(10.0),
-                                    child: SizedBox(
-                                      width: 300,
-                                      child: TextField(
-                                        controller: descriptionController,
-                                        maxLines: null,
-                                        keyboardType: TextInputType.multiline,
-                                        decoration: const InputDecoration(
-                                          border: OutlineInputBorder(),
-                                          labelText: 'Descripción',
+                        return StatefulBuilder(
+                            builder: (context, setStateDialog) {
+                              return AlertDialog(
+                                title: const Text('Elegir dirección'),
+                                content: IntrinsicHeight(
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: Text(
+                                            '¿Deseas crear un nuevo evento en la siguiente dirección?\n${closestAddress.innerText}'
                                         ),
                                       ),
+                                      TextButton(onPressed: () async {
+                                        startDate = await Util.showDateTimePicker(
+                                          context: context,
+                                          initialDate: DateTime.now(),
+                                          firstDate: DateTime.now(),
+                                          lastDate: DateTime.now().add(
+                                              const Duration(days: 365 * 2)),
+                                        );
+
+                                        setStateDialog(() {
+
+                                        });
+                                      },
+                                          child: Text('Fecha de inicio: ${Util.dateTimeToString(startDate??DateTime.now())}')),
+                                      TextButton(onPressed: () async {
+                                        endDate = await Util.showDateTimePicker(
+                                          context: context,
+                                          initialDate: DateTime.now(),
+                                          firstDate: DateTime.now(),
+                                          lastDate: DateTime.now().add(
+                                              const Duration(days: 365 * 2)),
+                                        );
+                                        setStateDialog(() {
+
+                                        });
+                                      }, child:  Text('Fecha de fin: ${Util.dateTimeToString(endDate??DateTime.now())}')),
+                                      Padding(
+                                        padding: const EdgeInsets.all(10),
+                                        child: SizedBox(
+                                          width: 300,
+                                          child: TextField(
+                                            decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: 'Título',
+                                            ),
+                                            controller: titleController,
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: SizedBox(
+                                          width: 300,
+                                          child: TextField(
+                                            controller: descriptionController,
+                                            maxLines: null,
+                                            keyboardType: TextInputType.multiline,
+                                            decoration: const InputDecoration(
+                                              border: OutlineInputBorder(),
+                                              labelText: 'Descripción',
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      textStyle: Theme
+                                          .of(context)
+                                          .textTheme
+                                          .labelLarge,
                                     ),
+                                    child: const Text('Cancelar'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  TextButton(
+                                    style: TextButton.styleFrom(
+                                      textStyle: Theme
+                                          .of(context)
+                                          .textTheme
+                                          .labelLarge,
+                                    ),
+                                    child: const Text('Aceptar'),
+                                    onPressed: () async {
+                                      bool ok = await Event.createEvent(
+                                          userId: Config.loginUser!.userId!,
+                                          title: titleController.text,
+                                          description: descriptionController.text,
+                                          startDate: startDate,
+                                          endDate: endDate,
+                                          latitude: coords.latitude,
+                                          longitude: coords.longitude
+                                      );
+                                      if (ok == true) {
+                                        setStateDialog(() {});
+                                        print('evento creado correctamente');
+                                      }
+                                      Navigator.of(context).pop();
+                                    },
                                   ),
                                 ],
-                              ),
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  textStyle: Theme
-                                      .of(context)
-                                      .textTheme
-                                      .labelLarge,
-                                ),
-                                child: const Text('Cancelar'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                              TextButton(
-                                style: TextButton.styleFrom(
-                                  textStyle: Theme
-                                      .of(context)
-                                      .textTheme
-                                      .labelLarge,
-                                ),
-                                child: const Text('Aceptar'),
-                                onPressed: () async {
-                                 bool ok = await Event.createEvent(
-                                     userId: Config.loginUser!.userId!,
-                                     title: titleController.text,
-                                     description: descriptionController.text,
-                                     startDate: startDate,
-                                     endDate: endDate,
-                                     latitude: coords.latitude,
-                                     longitude: coords.longitude
-                                 );
-                                 if (ok == true) {
-                                   setStateDialog(() {});
-                                   print('evento creado correctamente');
-                                 }
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
-                        }
-                      );
-                    },
-                  );
+                              );
+                            }
+                        );
+                      },
+                    );
+                  }
                 }
               ),
               children: [

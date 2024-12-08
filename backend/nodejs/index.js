@@ -41,13 +41,11 @@ pool.on('error', (err, client) => {
 app.post('/api/create_user', async (req, res) => {
     const client = await pool.connect();
 
-    client.query(`select * from create_user($1,$2,$3,$4,$5,$6);`,
+    client.query(`select * from create_user($1,$2,$3,$4);`,
         [
           req.body['i_username'],
           req.body['i_email'],
           req.body['i_password'],
-          req.body['i_description'],
-          req.body['i_avatar'],
           req.body['i_type']
         ])
     .then(response => {
