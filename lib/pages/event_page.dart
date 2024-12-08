@@ -1,5 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:echo_chamber/common/config.dart';
 import 'package:echo_chamber/models/event.dart';
+import 'package:echo_chamber/models/event_file.dart';
 import 'package:echo_chamber/models/event_like.dart';
 import 'package:echo_chamber/models/post.dart';
 import 'package:echo_chamber/models/tag.dart';
@@ -86,37 +92,39 @@ class _EventPageState extends State<EventPage> {
         child: Chip(label: Text(tags[i].name!, style: TextStyle(color: bgColor.textColorFromBg())), backgroundColor: bgColor),
       ));
     }
-    list.add(
-        InkWell(
-          child: const Chip(
-              label: Text('Añadir nueva etiqueta'),
-              avatar: Icon(Icons.add)
-          ),
-          onTap: () async {
-            List<Tag> tagList = [];
-            tagList = await Tag.getAllTags();
-            await showDialog(context: context, builder: (context) {
-              return AlertDialog(
-                content: Wrap(
-                  children: tagList.map((Tag tag) {
-                    Color bgColor = Color(int.parse(tag.color!));
-                    return InkWell(
-                      child: Chip(label: Text(tag.name!, style: TextStyle(color: bgColor.textColorFromBg())), backgroundColor: bgColor),
-                      onTap:  () async {
-                        dynamic ok = await tag.addToEvent(eventId: event.eventId!);
-                        if (ok == true) {
-                          setState(() {
-                            tags = [];
-                            tagsInitialized = false;
-                          });
-                        }
-                      },
-                    );
-                  }).toList()
-                ),
-              );
-            });
-          },));
+    if (Config.loginUser?.type == 0) {
+      list.add(
+          InkWell(
+            child: const Chip(
+                label: Text('Añadir nueva etiqueta'),
+                avatar: Icon(Icons.add)
+            ),
+            onTap: () async {
+              List<Tag> tagList = [];
+              tagList = await Tag.getAllTags();
+              await showDialog(context: context, builder: (context) {
+                return AlertDialog(
+                  content: Wrap(
+                      children: tagList.map((Tag tag) {
+                        Color bgColor = Color(int.parse(tag.color!));
+                        return InkWell(
+                          child: Chip(label: Text(tag.name!, style: TextStyle(color: bgColor.textColorFromBg())), backgroundColor: bgColor),
+                          onTap:  () async {
+                            dynamic ok = await tag.addToEvent(eventId: event.eventId!);
+                            if (ok == true) {
+                              setState(() {
+                                tags = [];
+                                tagsInitialized = false;
+                              });
+                            }
+                          },
+                        );
+                      }).toList()
+                  ),
+                );
+              });
+            }));
+    }
     return list;
   }
 
@@ -125,74 +133,79 @@ class _EventPageState extends State<EventPage> {
     list.add(ListTile(
       leading: const Icon(Icons.add),
       onTap: () async {
-        await showDialog<void>(
-          context: context,
-          builder: (BuildContext context) {
-            final TextEditingController commentController = TextEditingController();
 
-            return AlertDialog(
-              title: const Text('Añadir nuevo comentario'),
-              content: IntrinsicHeight(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: SizedBox(
-                        width: 300,
-                        child: TextField(
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            labelText: 'Comentario',
+        if (Config.loginUser?.userId == null) {
+          await Util.showLoginDialog(context);
+        } else {
+          await showDialog<void>(
+            context: context,
+            builder: (BuildContext context) {
+              final TextEditingController commentController = TextEditingController();
+
+              return AlertDialog(
+                title: const Text('Añadir nuevo comentario'),
+                content: IntrinsicHeight(
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: SizedBox(
+                          width: 300,
+                          child: TextField(
+                            keyboardType: TextInputType.multiline,
+                            maxLines: null,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              labelText: 'Comentario',
+                            ),
+                            controller: commentController,
                           ),
-                          controller: commentController,
                         ),
                       ),
+                    ],
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      textStyle: Theme
+                          .of(context)
+                          .textTheme
+                          .labelLarge,
                     ),
-                  ],
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  style: TextButton.styleFrom(
-                    textStyle: Theme
-                        .of(context)
-                        .textTheme
-                        .labelLarge,
+                    child: const Text('Cancelar'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
-                  child: const Text('Cancelar'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    textStyle: Theme
-                        .of(context)
-                        .textTheme
-                        .labelLarge,
+                  TextButton(
+                      style: TextButton.styleFrom(
+                        textStyle: Theme
+                            .of(context)
+                            .textTheme
+                            .labelLarge,
+                      ),
+                      child: const Text('Aceptar'),
+                      onPressed: () async {
+                        bool ok = await Post.create(
+                            userId: Config.loginUser!.userId!,
+                            eventId: event.eventId!,
+                            content: commentController.text
+                        );
+                        if (ok == true) {
+                          setState(() {
+                            postsInitialized = false;
+                          });
+                          print('post añadido correctamente');
+                        }
+                        Navigator.of(context).pop();
+                      }
                   ),
-                  child: const Text('Aceptar'),
-                  onPressed: () async {
-                    bool ok = await Post.create(
-                        userId: Config.loginUser!.userId!,
-                        eventId: event.eventId!,
-                        content: commentController.text
-                    );
-                    if (ok == true) {
-                      setState(() {
-                        postsInitialized = false;
-                      });
-                      print('post añadido correctamente');
-                    }
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
+                ],
+              );
+            },
+          );
+        }
       },
       title: const Text('Añadir nuevo comentario'),
     ));
@@ -321,7 +334,7 @@ class _EventPageState extends State<EventPage> {
                     likesInitialized = false;
                   });
                   } else {
-                    print('NO ESTÁS LOGUEADO');
+                    await Util.showLoginDialog(context);
                   }
                 },
                 child: Chip(
