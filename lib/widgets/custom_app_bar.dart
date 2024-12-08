@@ -49,42 +49,46 @@ class _CustomAppBarState extends State<CustomAppBar> {
               child: const Text('Mapa'),
             ),
           ),
-          const Padding(padding: EdgeInsets.only(left: 20),
-              child: Text('Descubrir')
-          ),
-          const Padding(padding: EdgeInsets.only(left: 20),
-              child: Text('Buscar')
-          ),
-          if (Config.loginUser?.type == 0) Padding(padding: const EdgeInsets.only(left: 20),
-            child: DropdownMenu<ConfigButton>(
-              initialSelection: ConfigButton.tags,
-              controller: configController,
-              requestFocusOnTap: true,
-              label: const Text('Configuración'),
-              onSelected: (ConfigButton? button) async {
-                await Navigator.pushNamed(context, button!.route);
-              },
-              dropdownMenuEntries: ConfigButton.values
-                  .map<DropdownMenuEntry<ConfigButton>>(
-                      (ConfigButton button) {
-                    return DropdownMenuEntry<ConfigButton>(
-                      value: button,
-                      label: button.label,
-                    );
-                  }).toList(),
+          Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: TextButton(
+                  onPressed: () async {
+                    await Navigator.pushNamed(context, SearchPage.route);
+                  },
+                  child: const Text('Buscar'))),
+          if (Config.loginUser?.type == 0)
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: DropdownMenu<ConfigButton>(
+                initialSelection: ConfigButton.tags,
+                controller: configController,
+                requestFocusOnTap: true,
+                label: const Text('Configuración'),
+                onSelected: (ConfigButton? button) async {
+                  await Navigator.pushNamed(context, button!.route);
+                },
+                dropdownMenuEntries: ConfigButton.values
+                    .map<DropdownMenuEntry<ConfigButton>>(
+                        (ConfigButton button) {
+                  return DropdownMenuEntry<ConfigButton>(
+                    value: button,
+                    label: button.label,
+                  );
+                }).toList(),
+              ),
             ),
-          ),
-          Config.loginUser == null ? OutlinedButton(
-            onPressed: () async {
-              dynamic loginOk = await Navigator.pushNamed(context, LoginPage.route);
-              if (loginOk == true) {
-                setState(() {
-
-                });
-              }
-            },
-            child: const Text('Iniciar sesión'),
-          ) : Text('Sesión iniciada como ${Config.loginUser?.username}')
+          Config.loginUser == null
+              ? OutlinedButton(
+                  onPressed: () async {
+                    dynamic loginOk =
+                        await Navigator.pushNamed(context, LoginPage.route);
+                    if (loginOk == true) {
+                      setState(() {});
+                    }
+                  },
+                  child: const Text('Iniciar sesión'),
+                )
+              : Text('Sesión iniciada como ${Config.loginUser?.username}')
         ],
       ),
     );

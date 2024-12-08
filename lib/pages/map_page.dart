@@ -24,13 +24,16 @@ class _MapPageState extends State<MapPage> {
   bool locationInitialized = false;
   bool eventsInitialized = false;
   LocationData? currentLocation;
+  LatLng? center;
   List<Event> events = [];
+  double radius = 1000;
 
   void initCurrentLocation() async {
     if (!locationInitialized) {
       final Location location = Location();
       LocationData locationData = await location.getLocation();
       currentLocation = locationData;
+      center = LatLng(currentLocation?.latitude??40.416775, currentLocation?.longitude??-3.703790);
       setState(() {
         locationInitialized = true;
       });
@@ -38,8 +41,9 @@ class _MapPageState extends State<MapPage> {
   }
 
   void initEvents() async {
-    if (!eventsInitialized) {
-      events = await Event.getEvents();
+    if (!eventsInitialized && locationInitialized) {
+      events = [];
+      events = await Event.getEvents(latitude: currentLocation?.latitude, longitude: currentLocation?.longitude, radius: radius);
       if (events.isNotEmpty) {
         setState(() {
           eventsInitialized = true;
@@ -71,16 +75,11 @@ class _MapPageState extends State<MapPage> {
     return list;
   }
 
-  @override
-  void initState() {
-    initCurrentLocation();
-    initEvents();
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
-
+    initCurrentLocation();
+    initEvents();
     return locationInitialized ? Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -89,7 +88,7 @@ class _MapPageState extends State<MapPage> {
           Expanded(
             child: FlutterMap(
               options: MapOptions(
-                initialCenter: LatLng(currentLocation?.latitude??40.416775, currentLocation?.longitude??-3.703790),
+                initialCenter: center!,
                 initialZoom: 9.2,
                 onTap: (post, coords) async {
 
@@ -108,7 +107,7 @@ class _MapPageState extends State<MapPage> {
                       final TextEditingController descriptionController = TextEditingController();
 
                       return StatefulBuilder(
-                        builder: (context, setState) {
+                        builder: (context, setStateDialog) {
                           return AlertDialog(
                             title: const Text('Elegir dirección'),
                             content: IntrinsicHeight(
@@ -129,12 +128,11 @@ class _MapPageState extends State<MapPage> {
                                           const Duration(days: 365 * 2)),
                                     );
 
-                                    setState(() {
+                                    setStateDialog(() {
 
                                     });
                                   },
-                                      child: Text(
-                                          'Fecha de inicio: ${Util.dateTimeToString(startDate??DateTime.now())}')),
+                                      child: Text('Fecha de inicio: ${Util.dateTimeToString(startDate??DateTime.now())}')),
                                   TextButton(onPressed: () async {
                                     endDate = await Util.showDateTimePicker(
                                       context: context,
@@ -143,7 +141,7 @@ class _MapPageState extends State<MapPage> {
                                       lastDate: DateTime.now().add(
                                           const Duration(days: 365 * 2)),
                                     );
-                                    setState(() {
+                                    setStateDialog(() {
 
                                     });
                                   }, child:  Text('Fecha de fin: ${Util.dateTimeToString(endDate??DateTime.now())}')),
@@ -210,7 +208,7 @@ class _MapPageState extends State<MapPage> {
                                      longitude: coords.longitude
                                  );
                                  if (ok == true) {
-                                   setState(() {});
+                                   setStateDialog(() {});
                                    print('evento creado correctamente');
                                  }
                                   Navigator.of(context).pop();
@@ -236,7 +234,7 @@ class _MapPageState extends State<MapPage> {
                 CircleLayer(circles: [
                   CircleMarker(
                       point: LatLng(currentLocation?.latitude??40.416775, currentLocation?.longitude??-3.703790),
-                      radius: 1000,
+                      radius: radius,
                       useRadiusInMeter: true,
                       color: Colors.purple.withOpacity(.2),
                       borderColor: Colors.purple,
@@ -256,7 +254,55 @@ class _MapPageState extends State<MapPage> {
             )
           )
         ],
-      )
+      ),
+      floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            final TextEditingController radiusController = TextEditingController();
+
+            await showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Ajustes'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: SizedBox(
+                        width: 300,
+                        child: TextField(
+                          keyboardType: TextInputType.number,
+                          maxLines: 1,
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Radio (en metros)',
+                          ),
+                          controller: radiusController,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                actions: <Widget>[
+                  ElevatedButton(
+                    child: const Text('Aceptar'),
+                    onPressed: () {
+                      setState(() {
+                        radius = double.parse(radiusController.text);
+                        events = [];
+                        eventsInitialized = false;
+                      });
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            }
+            );
+          },
+        child: const Icon(Icons.settings),
+      ),
     ) : const CircularProgressIndicator();
   }
 }

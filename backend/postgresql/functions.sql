@@ -313,7 +313,14 @@ END;$$ language plpgsql;
 
 --------------------------------------------------------------------
 DROP FUNCTION IF EXISTS get_events;
-CREATE OR REPLACE FUNCTION get_events()
+CREATE OR REPLACE FUNCTION get_events(
+    i_search_term VARCHAR,
+    i_start_date TIMESTAMPTZ,
+    i_end_date TIMESTAMPTZ,
+    i_longitude double precision,
+    i_latitude double precision,
+    i_radius double precision
+)
 RETURNS TABLE(
     o_event_id uuid,
     o_user_id uuid,
@@ -330,6 +337,13 @@ BEGIN
     
     for x_r in
     select * from event
+    where ((i_search_term is null) or
+    title ilike ('%'|| i_search_term || '%') or
+    description ilike ('%'|| i_search_term || '%')) AND
+    ((i_start_date is null or i_end_date is null) OR (start_date BETWEEN i_start_date and i_end_date)) AND
+    ((i_longitude is null or i_latitude is null) OR (ST_DWithin(Geography(event.geoloc),Geography(ST_MakePoint(i_longitude,i_latitude)),i_radius)))
+
+
     loop
         o_event_id = x_r.event_id;
         o_user_id = x_r.user_id;

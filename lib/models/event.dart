@@ -60,11 +60,23 @@ class Event {
     return (json.decode(jsonRes.body)[0]['o_event_id'] != null);
   }
 
-  static Future<List<Event>> getEvents() async {
+  static Future<List<Event>> getEvents(
+    {String? searchTerm,
+      DateTime? startDate,
+      DateTime? endDate,
+      double? latitude,
+      double? longitude,
+      double? radius}) async {
     List<Event> list = [];
     http.Response jsonRes = await HttpService.sendPostReq(
         operation: 'get_events',
         body: {
+          "i_search_term" : searchTerm,
+          "i_start_date" : startDate?.toIso8601String(),
+          "i_end_date" : endDate?.toIso8601String(),
+          "i_latitude" : latitude,
+          "i_longitude" : longitude,
+          "i_radius" : radius
         });
 
 
