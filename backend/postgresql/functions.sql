@@ -409,6 +409,62 @@ BEGIN
 	RETURN NEXT;
 END;$$ language plpgsql;
 --------------------------------------------------------------------
+
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS remove_event_file;
+CREATE OR REPLACE FUNCTION remove_event_file(
+    i_event_file_id uuid,
+    i_user_id uuid
+	)
+RETURNS TABLE(o_event_file_id uuid)
+AS $$
+DECLARE x_file_id uuid;
+DECLARE x_user_id uuid;
+BEGIN
+
+    SELECT file_id, user_id from event_file
+    where event_file_id = i_event_file_id
+    into x_file_id, x_user_id;
+
+    if (x_user_id != i_user_id)
+    THEN
+        PERFORM exception_action_not_allowed();
+    end if;
+
+    DELETE FROM file WHERE file_id = x_file_id;
+    DELETE FROM event_file WHERE event_file_id = i_event_file_id;
+
+    o_event_file_id = i_event_file_id;
+	RETURN NEXT;
+END;$$ language plpgsql;
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+DROP FUNCTION IF EXISTS get_event_files;
+CREATE OR REPLACE FUNCTION get_event_files(
+    i_event_id uuid
+	)
+RETURNS TABLE(o_file_id uuid, o_user_id uuid, o_username VARCHAR, o_filename VARCHAR, o_event_file_id uuid, o_event_id uuid)
+AS $$
+declare x_r record;
+BEGIN
+    for x_r in
+    select ef.*, f.filename, u.username, f.user_id from event_file ef
+    join file f on f.file_id = ef.file_id
+    join users u on u.user_id = f.user_id
+    where ef.event_id = i_event_id
+    loop
+        o_file_id = x_r.file_id;
+        o_user_id = x_r.user_id;
+        o_username = x_r.username;
+        o_filename = x_r.filename;
+        o_event_file_id = x_r.event_file_id;
+        o_event_id = x_r.event_id;
+        RETURN NEXT;
+    end loop;
+END;$$ language plpgsql;
+
+--------------------------------------------------------------------
 /*
   _____ ___  _____  _____ 
  |_   _/ _ \|  __ \/  ___|

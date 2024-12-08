@@ -5,6 +5,7 @@ import 'package:echo_chamber/models/post.dart';
 import 'package:echo_chamber/models/tag.dart';
 import 'package:echo_chamber/util/util.dart';
 import 'package:echo_chamber/widgets/custom_app_bar.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 class EventPage extends StatefulWidget {
@@ -21,10 +22,12 @@ class _EventPageState extends State<EventPage> {
   bool postsInitialized = false;
   bool tagsInitialized = false;
   bool likesInitialized = false;
+  bool picsInitialized = false;
 
   List<Post> posts = [];
   List<Tag> tags = [];
   List<EventLike> likes = [];
+  List<EventFile> pics = [];
 
   void initPosts() async {
     if (!postsInitialized) {
@@ -55,6 +58,21 @@ class _EventPageState extends State<EventPage> {
 
       setState(() {
         likesInitialized = true;
+      });
+    }
+  }
+
+  void initPics() async {
+    if (!picsInitialized) {
+      pics = [];
+      pics = await EventFile.getEventFiles(event.eventId!);
+
+      for (int i = 0; i < pics.length; i++) {
+        await pics[i].getContent();
+      }
+
+      setState(() {
+        picsInitialized = true;
       });
     }
   }
@@ -217,6 +235,7 @@ class _EventPageState extends State<EventPage> {
     initPosts();
     initTags();
     initLikes();
+    initPics();
 
     return Scaffold(
       body: Padding(
@@ -259,6 +278,35 @@ class _EventPageState extends State<EventPage> {
                   fit: BoxFit.fill,
                 ),
               ),
+              if (pics.isNotEmpty && picsInitialized) CarouselSlider.builder(
+                options: CarouselOptions(),
+                itemCount: pics.length,
+                itemBuilder: (BuildContext context, int i, int index) =>
+                    Image.memory(base64Decode(pics[i].content!))
+              ),
+              ElevatedButton(onPressed: () async {
+                if (Config.loginUser != null) {
+                  FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+                  if (result != null) {
+                    dynamic ok = await EventFile.create(
+                        userId: Config.loginUser!.userId!,
+                        eventId: event.eventId!,
+                        filename: result.files[0].name,
+                        content: base64Encode(result.files[0].bytes!));
+
+
+                    setState(() {
+                      pics = [];
+                      picsInitialized = false;
+                    });
+                  } else {
+                    // User canceled the picker
+                  }
+                } else {
+                  await Util.showLoginDialog(context);
+                }
+              }, child: Text('Compartir imagen')),
               InkWell(
                 onTap: () async {
                   if (Config.loginUser != null) {
