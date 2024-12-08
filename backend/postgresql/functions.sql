@@ -405,10 +405,10 @@ RETURNS TABLE(o_event_file_id uuid, o_file_id uuid)
 AS $$
 BEGIN
 
-    SELECT o_file_id FROM upload_file(
+    SELECT uf.o_file_id FROM upload_file(
     i_user_id,
     i_filename
-	) INTO o_file_id;
+	) uf INTO o_file_id;
     
     o_event_file_id = gen_random_uuid();
     INSERT INTO event_file(
@@ -565,6 +565,7 @@ BEGIN
     for x_r in
     select et.*, t.name, t.color from event_tag et
     join tag t on t.tag_id = et.tag_id
+    where et.event_id = i_event_id
     loop
         o_event_tag_id = x_r.event_tag_id;
         o_event_id = x_r.event_id;
@@ -597,6 +598,19 @@ BEGIN
 
     RETURN NEXT;
 END;$$ language plpgsql;
+
+/*
+ 
+  _     _____ _   __ _____ _____ 
+ | |   |_   _| | / /|  ___/  ___|
+ | |     | | | |/ / | |__ \ `--. 
+ | |     | | |    \ |  __| `--. \
+ | |_____| |_| |\  \| |___/\__/ /
+ \_____/\___/\_| \_/\____/\____/ 
+                                 
+                                 
+ 
+*/
 
 --------------------------------------------------------------------
 DROP FUNCTION IF EXISTS create_event_like;
@@ -660,6 +674,7 @@ BEGIN
     for x_r in
     select el.*, u.username from event_like el
     join users u on u.user_id = el.user_id
+    where el.event_id = i_event_id
     loop
         o_event_like_id = x_r.event_like_id;
         o_user_id = x_r.user_id;

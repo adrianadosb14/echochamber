@@ -2,6 +2,7 @@ import 'package:echo_chamber/common/config.dart';
 import 'package:echo_chamber/pages/home_page.dart';
 import 'package:echo_chamber/pages/login_page.dart';
 import 'package:echo_chamber/pages/map_page.dart';
+import 'package:echo_chamber/pages/search_page.dart';
 import 'package:echo_chamber/pages/tag_page.dart';
 import 'package:flutter/material.dart';
 
@@ -33,7 +34,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           if (widget.leading != null) widget.leading!,
-          Padding(padding: const EdgeInsets.only(left: 20),
+          Padding(
+            padding: const EdgeInsets.only(left: 20),
             child: TextButton(
               onPressed: () async {
                 await Navigator.pushNamed(context, HomePage.route);
@@ -41,7 +43,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
               child: const Text('Inicio'),
             ),
           ),
-          Padding(padding: const EdgeInsets.only(left: 20),
+          Padding(
+            padding: const EdgeInsets.only(left: 20),
             child: TextButton(
               onPressed: () async {
                 await Navigator.pushNamed(context, MapPage.route);
